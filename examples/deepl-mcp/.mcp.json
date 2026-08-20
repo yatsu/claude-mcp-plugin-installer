@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "deepl": {
+      "command": "npx",
+      "args": ["-y", "deepl-mcp-server"],
+      "env": { "DEEPL_API_KEY": "${user_config.token}" }
+    }
+  }
+}

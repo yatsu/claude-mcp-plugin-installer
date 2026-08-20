@@ -1,8 +1,8 @@
 {
   "mcpServers": {
-    "context7": {
+    "apify": {
       "type": "http",
-      "url": "https://mcp.context7.com/mcp",
+      "url": "https://mcp.apify.com",
       "headers": { "Authorization": "Bearer ${user_config.token}" }
     }
   }

@@ -21,6 +21,14 @@ One plugin per server. That granularity means you can disable a token-heavy
 server like GitHub MCP on days you are not using it, without touching anything
 else.
 
+Check the official plugin marketplace first: many vendors (GitHub, Context7,
+Sentry, Stripe, …) already ship their MCP server as a marketplace plugin, and
+installing from there gets you vendor-maintained updates. The skill checks and
+offers that route before scaffolding anything. This layout is for the servers
+that are not there — or for when you want the files under your own version
+control. Remote servers that support OAuth need none of this either: Claude
+Code runs the browser flow and stores the tokens itself.
+
 Credentials never go into the committed files: on macOS they live in the
 encrypted Keychain via the plugin's `userConfig` dialog; on Linux and Windows
 the skill wires up a helper script that reads your existing secret store. See
@@ -57,7 +65,8 @@ Say, for example:
 
 > install the GitHub MCP server
 
-The skill classifies the server (remote vs stdio) and your platform, asks two
+The skill first checks the official marketplace (and offers it if the server
+is there), classifies the server (remote vs stdio) and your platform, asks two
 questions — install location and credential handling — looks up the real
 endpoint and header names in the vendor's documentation, scaffolds the plugin,
 and validates it. You then restart (or `/reload-plugins`) — skills-dir plugins
@@ -79,14 +88,16 @@ model: [docs/credential-storage.md](docs/credential-storage.md).
 ## Examples
 
 Ready-made plugins in [`examples/`](examples/) — copy one into
-`~/.claude/skills/` and enable it:
+`~/.claude/skills/`, restart, then run `/plugin configure <name>@skills-dir`
+to enter the token:
 
-- [`github-mcp`](examples/github-mcp/) — GitHub remote MCP, Variant A
-- [`context7-remote`](examples/context7-remote/) — Context7 remote MCP, Variant A
-- [`context7-stdio`](examples/context7-stdio/) — Context7 local stdio MCP,
-  Variant C (API key via `CONTEXT7_API_KEY` in `env`)
+- [`apify-mcp`](examples/apify-mcp/) — Apify remote MCP (web-scraping Actors),
+  Variant A: API token in an `Authorization: Bearer` header
+- [`deepl-mcp`](examples/deepl-mcp/) — DeepL local stdio MCP (translation),
+  Variant C: API key via `DEEPL_API_KEY` in `env` (needs Node/npx)
 
-The examples use `userConfig`, so they are macOS-first; on Linux or Windows the
+Neither vendor is in the official marketplace — exactly the case this layout
+is for. The examples use `userConfig`, so they are macOS-first; on Linux or Windows the
 token would land in a plaintext `~/.claude/.credentials.json` — prefer letting
 the skill generate a Variant B/D layout instead.
 

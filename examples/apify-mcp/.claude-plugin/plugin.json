@@ -1,0 +1,18 @@
+{
+  "$schema": "https://www.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "apify-mcp",
+  "description": "Apify remote MCP server (web scraping Actors), authenticated with an API token stored in the OS keychain (Variant A)",
+  "version": "0.1.0",
+  "author": {
+    "name": "Masaki Yatsu"
+  },
+  "userConfig": {
+    "token": {
+      "type": "string",
+      "title": "Apify API token",
+      "description": "Create in Apify Console under Settings > API & Integrations. The free plan includes monthly platform credits. Stored in the macOS Keychain, never in a config file.",
+      "sensitive": true,
+      "required": true
+    }
+  }
+}

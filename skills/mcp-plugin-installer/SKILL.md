@@ -9,6 +9,22 @@ Install MCP servers — remote HTTP or local stdio — as `<name>@skills-dir`
 plugins so configuration lives in version-controllable files under
 `~/.claude/skills/`, not in `~/.claude.json`.
 
+## Step 0 — Prefer the official marketplace
+
+Check whether the vendor already ships this server as a plugin in the official
+marketplace: fetch
+https://raw.githubusercontent.com/anthropics/claude-plugins-official/main/.claude-plugin/marketplace.json
+and search the plugin names. If it is there, say so and ask (AskUserQuestion)
+whether to install from the marketplace instead — a marketplace plugin is
+maintained by its vendor and updates with `claude plugin update`. Continue with
+this skill only if the user prefers files under their own version control
+(dotfiles syncing, pinned config).
+
+Also: if the vendor's remote server supports OAuth, no credential handling is
+needed at all — Claude Code runs the browser flow from `/mcp` and manages the
+tokens itself. Mention that option; this skill's variants exist for static API
+keys.
+
 ## Step 1 — Classify along two axes
 
 **Transport.** Determined by the vendor's documentation (Step 3), not by asking:

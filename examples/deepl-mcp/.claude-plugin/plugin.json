@@ -1,0 +1,18 @@
+{
+  "$schema": "https://www.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "deepl-mcp",
+  "description": "DeepL local stdio MCP server (translation), API key passed through env from the OS keychain (Variant C)",
+  "version": "0.1.0",
+  "author": {
+    "name": "Masaki Yatsu"
+  },
+  "userConfig": {
+    "token": {
+      "type": "string",
+      "title": "DeepL API key",
+      "description": "Create from your DeepL account's API keys page (API Free or Pro plan). Passed to the server as DEEPL_API_KEY through the environment — never as a CLI argument. Stored in the macOS Keychain.",
+      "sensitive": true,
+      "required": true
+    }
+  }
+}
