@@ -1,0 +1,7 @@
+# On Linux and Windows, Claude Code stores OAuth tokens (and sensitive plugin
+# userConfig values) in a plaintext .credentials.json. It should never exist in
+# this repo, but ignore it defensively in case a config dir ever ends up here.
+.credentials.json
+.claude/settings.local.json
+*.local.json
+.DS_Store
