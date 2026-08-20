@@ -60,9 +60,10 @@ Say, for example:
 The skill classifies the server (remote vs stdio) and your platform, asks two
 questions — install location and credential handling — looks up the real
 endpoint and header names in the vendor's documentation, scaffolds the plugin,
-and validates it. You then restart (or `/reload-plugins`), enable the plugin in
-`/plugin`, and paste the token into the credential dialog. The skill never
-touches the token itself.
+and validates it. You then restart (or `/reload-plugins`) — skills-dir plugins
+enable automatically — and run `/plugin configure <name>-mcp@skills-dir` to
+paste the token into the credential dialog. The skill never touches the token
+itself.
 
 ## Credential handling
 

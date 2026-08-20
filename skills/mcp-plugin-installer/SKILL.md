@@ -251,13 +251,16 @@ where `<install-dir>` is the location chosen in Step 2.
 
 Print these and STOP. Never enter, echo, or read the token yourself.
 
-1. Restart the session (or run `/reload-plugins`). For a project-scope install,
-   the workspace must be trusted before the plugin is scanned.
-2. Open `/plugin`, make sure `<name>-mcp@skills-dir` is enabled
-   - Variant A: a credential dialog appears at enable time — paste the token
-     there (or configure the plugin from `/plugin` if it was already enabled)
-   - Variant B: make sure the secret is in the store at the path above
-3. Run `/mcp` to confirm the connection
+1. Restart the session (or run `/reload-plugins`). Skills-dir plugins enable
+   automatically on discovery — no enable-time credential dialog appears. For a
+   project-scope install, the workspace must be trusted before the plugin is
+   scanned.
+2. Provide the credential
+   - Variant A/C: run `/plugin configure <name>-mcp@skills-dir` and paste the
+     token into the dialog
+   - Variant B/D: make sure the secret is in the store at the path above
+3. Run `/mcp` to confirm the connection (if the server has not picked up the
+   new credential, `/reload-plugins` first)
 
 ## Never do
 
