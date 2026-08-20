@@ -3,6 +3,10 @@
 A Claude Code skill that installs remote MCP servers as skills-directory
 plugins under `~/.claude/skills/`, instead of via `claude mcp add`.
 
+> Verified against Claude Code 2.1.x. Skills-directory plugin behaviour —
+> auto-enable on discovery, `/plugin configure` for entering credentials — is
+> newer surface area and may change between versions.
+
 ## The problem
 
 `claude mcp add` writes user-scope MCP servers into `~/.claude.json` — the same

@@ -66,14 +66,18 @@ accepts the credential only as a flag, that is Variant E.
 
 ## Step 2 — Ask the user
 
-Use AskUserQuestion. Ask both questions in a single call. Put the variant from
-Step 1 FIRST in the options list, but always offer the alternatives — the user
+Use AskUserQuestion. Ask both questions in a single call — never drop the
+install-location question, even when the credential choice seems obvious.
+
+Order the credential options: if the server supports OAuth (Step 0), put
+"OAuth (no token)" FIRST — it needs no credential handling at all. Otherwise
+the variant from Step 1 goes first. Always offer the alternatives — the user
 may be syncing dotfiles across machines and want one consistent approach.
 
 1. "Install location" → `~/.claude/skills` (all projects) / `.claude/skills` in
    this project (loads only here, gated on workspace trust)
-2. "Credential handling" → [Step 1 default first] OS keychain via userConfig /
-   External secret store via helper script / No authentication
+2. "Credential handling" → OAuth if supported / [Step 1 default] OS keychain
+   via userConfig / External secret store via helper script / No authentication
 
 Do not proceed until answered. Never guess.
 
