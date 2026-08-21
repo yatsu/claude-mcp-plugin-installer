@@ -22,8 +22,8 @@ this skill only if the user prefers files under their own version control
 
 Also: if the vendor's remote server supports OAuth, no credential handling is
 needed at all — Claude Code runs the browser flow from `/mcp` and manages the
-tokens itself. Mention that option; this skill's variants exist for static API
-keys.
+tokens itself. Offer it as Variant O (Step 4); Variants A–E exist for static
+API keys.
 
 ## Step 1 — Classify along two axes
 
@@ -39,7 +39,8 @@ keys.
 | --- | --- | --- |
 | `Darwin` | macOS | available |
 | `Linux` | Linux (incl. WSL) | none |
-| `MINGW*` / `MSYS*` / `CYGWIN*` | Windows | none |
+| `MINGW*` / `MSYS*` / `CYGWIN*` | Windows (Git Bash) | none |
+| no Bash tool, only PowerShell | Windows (no Git Bash) | none |
 
 Combine into a default variant:
 
@@ -76,8 +77,15 @@ may be syncing dotfiles across machines and want one consistent approach.
 
 1. "Install location" → `~/.claude/skills` (all projects) / `.claude/skills` in
    this project (loads only here, gated on workspace trust)
-2. "Credential handling" → OAuth if supported / [Step 1 default] OS keychain
-   via userConfig / External secret store via helper script / No authentication
+2. "Credential handling" → OAuth if supported / [Step 1 default] userConfig /
+   External secret store via helper script / No authentication
+
+Label the userConfig option by what it actually does on this platform:
+
+- macOS: "OS keychain via userConfig"
+- Linux / Windows: "userConfig — plaintext in `~/.claude/.credentials.json`
+  (0600)". Never call it a keychain there; the user must see that they are
+  choosing plaintext storage.
 
 Do not proceed until answered. Never guess.
 
@@ -101,6 +109,26 @@ recommends a usage rule worth keeping as a skill.
 For project scope, `claude plugin init` has no target-directory option — create
 the files by hand instead: `.claude/skills/<name>-mcp/.claude-plugin/plugin.json`
 and `.claude/skills/<name>-mcp/.mcp.json`, with the same content as below.
+
+### Variant O — OAuth (remote, any platform)
+
+No `userConfig`, no headers, no secret anywhere. `.claude-plugin/plugin.json`
+carries only `$schema`, `name`, `description`, `version`. `.mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "<server-key>": {
+      "type": "http",
+      "url": "<verified url>"
+    }
+  }
+}
+```
+
+Claude Code detects the server's OAuth challenge and the user authenticates
+from `/mcp` (Step 6). Do not add a `headers` block "just in case" — that turns
+the plugin back into Variant A and makes `userConfig` necessary.
 
 ### Variant A — userConfig (macOS)
 
@@ -139,7 +167,8 @@ and `.claude/skills/<name>-mcp/.mcp.json`, with the same content as below.
 ```
 
 The user does NOT pre-create a Keychain entry. Claude Code writes the value to
-the Keychain when they fill in the enable-time dialog.
+the Keychain when they enter it through `/plugin configure` (Step 6). There is
+no enable-time dialog for skills-dir plugins — they enable automatically.
 
 ### Variant B — headersHelper (Linux / Windows)
 
@@ -223,17 +252,59 @@ exec npx -y <package>
 ```
 
 Requirements:
-- `exec` is mandatory. Without it the server runs as a child and stdio framing
-  breaks.
+- Use `exec`. It replaces the wrapper with the server, so stdin/stdout are
+  handed over directly and Claude Code's shutdown signal reaches the server
+  instead of orphaning it behind a dead shell.
 - `chmod +x` the script.
 - Ask the user which secret-store command to call (`gopass show -o`, `sops -d`,
   `pass`, …) rather than assuming one.
 - Never echo the secret or write it to a file.
-- On Windows outside WSL, write a `.ps1` or `.cmd` equivalent and confirm the
-  user's shell first.
 
 The secret must already exist in the store. Tell the user the exact path the
 script expects.
+
+**Windows outside WSL.** A `.sh` file is not directly executable there. Two
+options, in order of preference:
+
+1. Git Bash is installed (the Bash tool works): keep the same script and run it
+   through bash, so `exec` and the template above still apply:
+
+   ```json
+   {
+     "mcpServers": {
+       "<server-key>": {
+         "command": "bash",
+         "args": ["${CLAUDE_PLUGIN_ROOT}/bin/run-server.sh"]
+       }
+     }
+   }
+   ```
+
+2. No Git Bash (PowerShell only): write `bin/run-server.ps1` instead. PowerShell
+   has no `exec`; the server runs as a child with inherited stdio, which works
+   but may leave the server running if the wrapper is killed. Say so.
+
+   ```json
+   {
+     "mcpServers": {
+       "<server-key>": {
+         "command": "powershell",
+         "args": ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File",
+                  "${CLAUDE_PLUGIN_ROOT}/bin/run-server.ps1"]
+       }
+     }
+   }
+   ```
+
+   ```powershell
+   $ErrorActionPreference = "Stop"
+   # Secret goes into the environment, never onto the command line.
+   $env:VENDOR_ENV_VAR = (gopass show -o <path>)
+   & npx -y <package>
+   exit $LASTEXITCODE
+   ```
+
+Confirm which case applies before writing anything.
 
 ### Variant E — the secret cannot be kept out of the file
 
@@ -248,11 +319,21 @@ stating plainly:
   to the repository if that file is ever committed
 - that this defeats the purpose of the plugin layout
 
-Offer: (a) inline it and gitignore the file, (b) set up a secret store first and
-resume, (c) abort.
+Offer: (a) inline it, accepting that this plugin is now local-only, (b) set up
+a secret store first and resume, (c) abort.
 
-Only on an explicit (a) may you write it. When you do, add the file to
-`.gitignore` in the same step and tell the user the plugin is now unshareable.
+Only on an explicit (a) may you write it. What (a) means depends on the install
+location, and you must say which applies:
+
+- Project scope (`.claude/skills/` in a repo): add `.claude/skills/<name>-mcp/.mcp.json`
+  to the project's `.gitignore` in the same step. The plugin will not exist
+  for anyone else who clones the repo.
+- `~/.claude/skills`: check whether that directory is under version control or
+  a dotfiles sync. If it is, exclude the file there (`.gitignore`, the sync
+  tool's ignore list) and warn that the plugin will be broken on every other
+  machine. If it is not, say plainly that nothing protects the file beyond
+  filesystem permissions — do not report a `.gitignore` change that guards
+  nothing.
 
 **This escalation is not optional and not limited to Variant E.** If a chosen
 variant turns out not to work partway through — the keychain write fails, the
@@ -276,6 +357,8 @@ Print these and STOP. Never enter, echo, or read the token yourself.
    project-scope install, the workspace must be trusted before the plugin is
    scanned.
 2. Provide the credential
+   - Variant O: run `/mcp`, select the server, choose Authenticate, and finish
+     the browser flow — nothing to paste
    - Variant A/C: run `/plugin configure <name>-mcp@skills-dir` and paste the
      token into the dialog
    - Variant B/D: make sure the secret is in the store at the path above

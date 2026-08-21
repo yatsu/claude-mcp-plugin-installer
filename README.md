@@ -84,6 +84,7 @@ itself.
 | --- | --- | --- |
 | macOS | **A** — `userConfig` → header, token in Keychain | **C** — `userConfig` → `env`, token in Keychain |
 | Linux / Windows | **B** — `headersHelper` script reads your secret store | **D** — wrapper script reads your secret store |
+| any (OAuth-capable remote) | **O** — no credential at all; authenticate from `/mcp` | — |
 
 If none of these can work, the skill stops and asks before writing anything
 sensitive to disk — it never inlines a secret silently. Details and threat
@@ -110,8 +111,10 @@ the skill generate a Variant B/D layout instead.
 - Both remote HTTP and local stdio servers are supported, but stdio servers
   bring their own runtime dependency (Node, Python, a container) that this
   skill does not install or manage.
-- Variant D wrapper scripts are POSIX shell; Windows outside WSL needs a
-  hand-written `.ps1`/`.cmd` equivalent.
+- Variant D wrapper scripts are POSIX shell. On Windows outside WSL they run
+  through Git Bash if it is installed; without it the skill falls back to a
+  PowerShell wrapper, which cannot `exec` and may leave the server running if
+  the wrapper is killed.
 - The token entry step is manual by design and will not be automated.
 - New plugins are only discovered on the next session (or after
   `/reload-plugins`).
